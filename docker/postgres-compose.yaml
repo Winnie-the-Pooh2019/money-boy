@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: db
+    command:
+      - 'postgres'
+      - '-c'
+      - 'log_min_duration_statement=200ms'
+      - '-c'
+      - 'idle_in_transaction_session_timeout=10s'
+      - '-c'
+      - 'max_connections=100'
+    environment:
+      - POSTGRES_USER=${DATASOURCE_USERNAME}
+      - POSTGRES_PASSWORD=${DATASOURCE_PASSWORD}
+      - POSTGRES_DB=${DATASOURCE_DB}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - '5432:5432'
+    volumes:
+      - type: volume
+        source: db-volume
+        target: /var/lib/postgresql/data/pgdata
+    restart: on-failure
+
+  pgadmin:
+    image: dpage/pgadmin4:8.7
+    container_name: pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+      - PGADMIN_CONFIG_SERVER_MODE=False
+    ports:
+      - '5050:80'
+    volumes:
+      - type: volume
+        source: pgadmin-volume
+        target: /var/lib/pgadmin
+    links:
+      - db
+    depends_on:
+      - db
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+volumes:
+  db-volume:
+    driver: local
+  pgadmin-volume:
+    driver: local

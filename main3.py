@@ -67,11 +67,14 @@ def distribute_budget_lexico(A, v, B, L=None, epsilon=1e-3):
     prob2.solve()
 
     if prob2.status != cp.OPTIMAL:
-        raise RuntimeError(f"Второй этап не решил задачу: {prob2.status}")
-
-    cov2  = cov_loss.value
-    z2    = x.value * B
-    used2 = z2.sum()
+        # raise RuntimeError(f"Второй этап не решил задачу: {prob2.status}")
+        cov2 = None
+        used2 = None
+        z2 = None
+    else:
+        cov2 = cov_loss.value
+        z2 = x.value * B
+        used2 = z2.sum()
 
     metrics = {
         'cov1':  cov1,
